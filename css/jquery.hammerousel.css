@@ -1,0 +1,68 @@
+html,
+body,
+.hammerousel,
+.hammerousel ul,
+.hammerousel li {
+	position: relative;
+	min-height: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.hammerousel {
+	overflow: hidden;
+	width: 100%;
+	-webkit-backface-visibility: hidden;
+	-webkit-transform: translate3d(0,0,0) scale3d(1,1,1);
+	-webkit-transform-style: preserve-3d;
+}
+
+.hammerousel ul.animate {
+	-webkit-transition: all .3s;
+	-moz-transition: all .3s;
+	-o-transition: all .3s;
+	transition: all .3s;
+}
+
+.hammerousel ul {
+	-webkit-transform: translate3d(0%,0,0) scale3d(1,1,1);
+	-moz-transform: translate3d(0%,0,0) scale3d(1,1,1);
+	-ms-transform: translate3d(0%,0,0) scale3d(1,1,1);
+	-o-transform: translate3d(0%,0,0) scale3d(1,1,1);
+	transform: translate3d(0%,0,0) scale3d(1,1,1);
+	overflow: hidden;
+	-webkit-backface-visibility: hidden;
+	-webkit-transform-style: preserve-3d;
+}
+
+.hammerousel ul {
+	position: relative;
+	width: 100%;
+}
+
+.hammerousel li {
+	float: left;
+	overflow: hidden;
+	-webkit-transform-style: preserve-3d;
+	-webkit-transform: translate3d(0,0,0);
+}
+
+.hammerousel li > div {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	min-width: 100%;
+	min-height: 100%;
+}
+
+.hammerousel li h2 {
+	position: absolute;
+	color: #fff;
+	font-size: 30px; 
+	text-align: center;
+	top: 40%;
+	left: 0;
+	width: 100%;
+	text-shadow: -1px -1px 0 rgba(0,0,0,.2);
+}
