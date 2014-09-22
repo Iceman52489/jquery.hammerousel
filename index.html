@@ -24,7 +24,11 @@
 					width: 1024px;
 					height: 768px;
 				}
-			} 	
+			}
+
+			body {
+				background-color: #000000;
+			}
 
 			.hammerousel li > div {
 				background-color: #000000;
@@ -32,10 +36,14 @@
 				background-repeat: repeat-y;
 			}
 
-			.hammerousel li.pane-1 > div { background-image: url('images/uv-crisp.png'); }
-			.hammerousel li.pane-2 > div { background-image: url('images/prospects-crisp.png'); }
-			.hammerousel li.pane-3 > div { background-image: url('images/sales-crisp.png'); }
-			.hammerousel li.pane-4 > div { background-image: url('images/dealer-crisp.png'); }
+			.hammerousel li > ul > li div {
+				height: 1080px;
+			}
+
+			.hammerousel li.pane-1 div { background-image: url('images/uv-crisp.png'); }
+			.hammerousel li.pane-2 div { background-image: url('images/prospects-crisp.png'); }
+			.hammerousel li.pane-3 div { background-image: url('images/sales-crisp.png'); }
+			.hammerousel li.pane-4 div { background-image: url('images/dealer-crisp.png'); }
 		</style>
 
 		<script src="js/jquery-1.9.1.min.js"></script>
@@ -50,7 +58,12 @@
 		<div class="hammerousel">
 			<ul>
 				<li class="pane-1">
-					<div></div>
+					<ul>
+						<li><div></div></li>
+						<li><div></div></li>
+						<li><div></div></li>
+						<li><div></div></li>
+					</ul>
 				</li>
 				<li class="pane-2">
 					<div></div>

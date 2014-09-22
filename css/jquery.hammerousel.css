@@ -48,12 +48,31 @@ body,
 	-webkit-transform: translate3d(0,0,0);
 }
 
+.hammerousel li ul > li {
+	float: none;
+}
+
 .hammerousel li > div {
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	min-width: 100%;
 	min-height: 100%;
+}
+
+.hammerousel li > ul {
+	position: absolute;
+	width: 100%;
+	height: auto;
+	min-width: 100%;
+	min-height: 100%;
+}
+
+.hammerousel li > ul > li,
+.hammerousel li > ul > li > div {
+	position: relative;
+	width: 100%;
+	height: auto;
 }
 
 .hammerousel li h2 {

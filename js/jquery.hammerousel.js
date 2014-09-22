@@ -81,29 +81,37 @@
 				options = self.options,
 				data = self.data;
 
-			data.hammer.options = { dragLockToAxis: true };
-			data.hammer.events = ['release'];
+			data.hammer.events = ['release', 'dragstart'];
+			data.hammer.options = {
+				dragLockToAxis: true,
+				dragBlockVertical: true,
+				dragBlockHorizontal: true
+			};
+
+			data.y.transform = { x: 0, y: 0 };
+			data.x.transform = { x: 0, y: 0 };
 
 			// Set options for horizontal features
 			if(data.x.enabled) {
-//				data.hammer.options.dragBlockVertical = true;
-				data.hammer.events.push('dragleft','dragright','swiperight');
+				data.hammer.events.push('dragleft','dragright','swipeleft','swiperight');
 			}
 
 			// Set options for vertical features
 			if(data.y.enabled) {
-//				data.hammer.options.dragBlockHorizontal = true;
-				data.hammer.events.push('dragleft','dragright','swiperight');
+				data.hammer.events.push('dragup','dragdown','swipeup','swipedown');
 			}
 
 			data.hammer.instance = element.hammer(data.hammer.options);
-			data.hammer.instance.on(data.hammer.events.join(' '), self._handleHammerousel);
+			data.hammer.instance.on(
+				data.hammer.events.join(' '),
+				self._handleHammerousel
+			);
 		},
 
 		/*-----------------------*/
 		/*--- Private Methods ---*/
 		/*-----------------------*/
-		showPane: function(paneIndex, animate) {
+		showPane: function(event, paneIndex, animate) {
 			var self = this,
 				data = self.data,
 				offset = 0;
@@ -115,21 +123,21 @@
 			data.active = paneIndex;
 			offset = -((100 / data.intPanes) * data.active);
 
-			self._setContainerOffset(offset, animate);
+			self._setContainerX(event, offset, animate);
 		},
 
-		next: function() {
+		next: function(event) {
 			var self = this,
 				data = self.data;
 
-			return self.showPane(data.active + 1, true);
+			return self.showPane(event, data.active + 1, true);
 		},
 
-		prev: function() {
+		prev: function(event) {
 			var self = this,
 				data = self.data;
 
-			return self.showPane(data.active - 1, true);
+			return self.showPane(event, data.active - 1, true);
 		},
 
 		/*-----------------------*/
@@ -144,9 +152,11 @@
 				carousel = element.find('> ul'),
 				panes = carousel.find('> li'),
 				data = self.data,
+				isHorizontal = (event.gesture.direction.search(/left|right/) > -1),
 				threshold;
 
 			switch (event.type) {
+				// Horizontal Events
 				case 'dragright':
 				case 'dragleft':
 					// Bind to finger
@@ -154,12 +164,11 @@
 					data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
 
 					// Animation timing on :first and :last panes
-					if((data.active == 0 && event.gesture.direction == 'right') ||
-						(data.active == (data.intPanes - 1) && event.gesture.direction == 'left')) {
+					if((data.active == 0 && event.gesture.direction == 'right') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'left')) {
 						data.offsets.drag *= .4;
 					}
 
-					self._setContainerOffset(data.offsets.drag + data.offsets.pane);
+					self._setContainerX(event, data.offsets.drag + data.offsets.pane);
 
 					break;
 				case 'swipeleft':
@@ -172,25 +181,67 @@
 					event.gesture.stopDetect();
 
 					break;
+
+				// Vertical Events
+				case 'dragup':
+				case 'dragdown':
+					if(data.y.threshold) {
+						data.offsets.pane = -(100 / data.intPanes) * data.active;
+						data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
+
+						// Animation timing on :first and :last panes
+					if((data.active == 0 && event.gesture.direction == 'up') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'down')) {
+						data.offsets.drag *= .4;
+					}
+
+						self._setContainerY(data.offsets.drag + data.offsets.pane);
+					} else {
+						data.offsets.drag = event.gesture.deltaX;
+						self._setContainerY(event, data.offsets.drag);
+					}
+				case 'swipeup':
+//					self.next();
+//					event.gesture.stopDetect();
+
+					break;
+				case 'swipedown':
+//					self.prev();
+//					event.gesture.stopDetect();
+
+					break;
+				// Default Events
+				case 'dragstart':
+					carousel = isHorizontal ? element.find('> ul') : element.children().find('> li:eq(' + data.active + ') ul');
+
+					if(isHorizontal) {
+
+					} else {
+						data.y.transform.initial = carousel.offset().top;
+					}
+
+					break;
 				case 'release':
-					threshold = (event.gesture.direction.search(/left|right/) > -1) ? data.x.threshold : data.y.threshold;
+					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
 
 					// If drag distance is more than drag distance, then move to the next pane
-					if( Math.abs(event.gesture.deltaX) > (data.widths.pane * threshold) ) {
-						(event.gesture.direction == 'right') ?  self.prev() : self.next();
+					if(isHorizontal) {
+						if( Math.abs(event.gesture.deltaX) > (data.widths.pane * threshold) ) {
+							(event.gesture.direction == 'right') ?  self.prev(event) : self.next(event);
+						} else {
+							self.showPane(event, data.active, true);
+						}
 					} else {
-						self.showPane(data.active, true);
+
 					}
 
 					break;
 			}
 		},
 
-		_setContainerOffset: function(percent, animate) {
+		_setContainerX: function(event, percent, animate) {
 			var self = this,
 				element = $(self.element),
 				carousel = element.find('> ul'),
-				panes = carousel.find('> li'),
 				data = self.data,
 				x = 0;
 
@@ -201,10 +252,67 @@
 			if(Modernizr.csstransforms3d) {
 				carousel.css('transform', 'translate3d(' + percent + '%,0,0) scale3d(1,1,1)');
 			} else if(Modernizr.csstransforms) {
-				container.css('transform', 'translate(' + percent + '%,0)');
+				carousel.css('transform', 'translate(' + percent + '%,0)');
 			} else {
 				x = ( (data.widths.pane * data.intPanes) / 100 ) * percent;
 				carousel.css('left', x);
+			}
+		},
+
+		_setContainerY: function(event, percent, animate) {
+			var self = this,
+				element = $(self.element),
+				data = self.data,
+				carousel = element.find('> ul'),
+				pane = carousel.find('li:last'),
+				y = 0;
+
+			if(carousel.length) {
+				if(data.y.threshold) {
+					// With panel locking set
+					animate ?
+						carousel.addClass('animate') :
+						carousel.removeClass('animate');
+
+					if(Modernizr.csstransforms3d) {
+						carousel.css('transform', 'translate3d(0,' + percent + '%,0) scale3d(1,1,1)');
+					} else if(Modernizr.csstransforms) {
+						carousel.css('transform', 'translate(0,' + percent + '%)');
+					} else {
+						y = ( (data.widths.pane * data.intPanes) / 100 ) * percent;
+						carousel.css('top', y);
+					}
+				} else {
+					// Without panel locking set
+
+					carousel = element.children().find('> li:eq(' + data.active + ') ul');
+
+					var direction = event.gesture.direction,
+						scrollDirection = (direction == 'down') ? 'up' : 'down',
+						dragOffset = (scrollDirection == 'down') ? -event.gesture.distance : event.gesture.distance,
+						newOffset = data.y.transform.initial + dragOffset,
+						minThreshold = 0,
+						maxThreshold = carousel.height() - pane.height();
+
+					switch(scrollDirection) {
+						case 'up':
+							if(-newOffset <= 0) {
+								carousel.css('top', minThreshold);
+								return;
+							}
+
+							break;
+						case 'down':
+							if(-newOffset >= maxThreshold) {
+								carousel.css('top', -maxThreshold);
+								return;
+							}
+
+							break;
+					}
+
+					carousel.css('top', newOffset);
+				}
 			}
 		},
 
@@ -222,43 +330,3 @@
 		}
 	});
 })(jQuery);
-/*
-element
-	.find('li > div')
-	.each(function() {
-		new Hammer(this, {
-			preventDefault: true
-		}).on('dragstart', function(ev) {
-			initialOffset = $(this).offset().top;
-		}).on('dragdown dragup', function(ev) {
-			// stick to the finger
-			var container = $(this),
-				pane = container.parent(),
-				direction = ev.gesture.direction,
-				scrollDirection = (direction == 'down') ? 'up' : 'down',
-				dragOffset = (scrollDirection == 'down') ? -ev.gesture.distance : ev.gesture.distance,
-				newOffset = initialOffset + dragOffset,
-				minThreshold = 0,
-				maxThreshold = container.height() - pane.height();
-
-			switch(scrollDirection) {
-				case 'up':
-					if(-newOffset <= 0) {
-						container.css('top', minThreshold);
-						return;
-					}
-
-					break;
-				case 'down':
-					if(-newOffset >= maxThreshold) {
-						container.css('top', -maxThreshold);
-						return;
-					}
-
-					break;
-			}
-
-			container.css('top', newOffset);
-		});
-	});
-*/
