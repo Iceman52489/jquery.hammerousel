@@ -9,6 +9,7 @@ Vertical/Horizontal touch-enabled carousel
 - jQuery Migrate v1.2.1
 - jQuery UI v1.10.3
 - HammerJS v1.1.3
+- jQuery Hammer v1.1.3
 
 # Usage
 
