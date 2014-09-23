@@ -3,7 +3,8 @@
 		Vertical/Horizontal touch-enabled carousel
 	-----------------------------------------------
 	Author:     Kevin Chiu (Mocha Development)
-	Version:    1.0.0 (September 19, 2014)
+	Version:    1.1 (September 23, 2014)
+				1.0 (September 19, 2014)
 
 	Options:    $().hammerousel({
 					
