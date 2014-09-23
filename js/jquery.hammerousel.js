@@ -368,7 +368,7 @@
 				$.error('[Function] On -> Invalid "callback" <function> parameter!');
 			}
 
-			if( !(options.distance && (typeof options.distance == 'number')) ) {
+			if( !(typeof options.distance == 'number') ) {
 				isError = true;
 				$.error('[Function] On -> Invalid "distance" <number> parameter!');
 			}
