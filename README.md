@@ -43,7 +43,7 @@ _Markup_:
 _Init_:
 ```javascript
 $(function() {
-    $('#<list-id>').hammerousel(<options>);
+    var $hammerousel = $('.hammerousel').hammerousel(<options>);
 });
 ```
 
@@ -60,4 +60,39 @@ _Options_:
         threshold: 0
     }
 }
+```
+
+_Methods_:
+
+Example:
+```javascript
+    $hammerousel.hammerousel('on', param1, param2, etc);
+```
+
+####.hammerousel('on', selector, callback, distance)
+Bind a live event to Hammerousel using a custom event parameter
+#####Parameters
+**selector**: `string`
+**callback**: `function`
+**distance**: `number`
+
+**Returns:** Event Name
+
+####.hammerousel('one', selector, callback, distance)
+Bind an event that will only trigger once per element per event type
+#####Parameters
+**selector**: `string`
+**callback**: `function`
+**distance**: `number`
+
+**Returns:** Event Name
+
+_Events_:
+ShowPane::After
+```javascript
+$('.hammerousel').on('Hammerousel::beforeShowPane', function(event, type));
+```
+ShowPane::Before 
+```javascript
+$('.hammerousel').on('Hammerousel::afterShowPane', function(event, type));
 ```

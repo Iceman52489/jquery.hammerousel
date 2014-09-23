@@ -30,20 +30,16 @@
 				background-color: #000000;
 			}
 
-			.hammerousel li > div {
+			.hammerousel > ul > li {
 				background-color: #000000;
 				background-position: center top;
 				background-repeat: repeat-y;
 			}
 
-			.hammerousel li > ul > li div {
-				height: 1080px;
-			}
-
-			.hammerousel li.pane-1 div { background-image: url('images/uv-crisp.png'); }
-			.hammerousel li.pane-2 div { background-image: url('images/prospects-crisp.png'); }
-			.hammerousel li.pane-3 div { background-image: url('images/sales-crisp.png'); }
-			.hammerousel li.pane-4 div { background-image: url('images/dealer-crisp.png'); }
+			.hammerousel li.pane-1 { background-image: url('images/uv-crisp.png'); }
+			.hammerousel li.pane-2 { background-image: url('images/prospects-crisp.png'); }
+			.hammerousel li.pane-3 { background-image: url('images/sales-crisp.png'); }
+			.hammerousel li.pane-4 { background-image: url('images/dealer-crisp.png'); }
 		</style>
 
 		<script src="js/jquery-1.9.1.min.js"></script>
@@ -58,26 +54,38 @@
 		<div class="hammerousel">
 			<ul>
 				<li class="pane-1">
-					<ul>
-						<li><div></div></li>
-						<li><div></div></li>
-						<li><div></div></li>
-						<li><div></div></li>
-					</ul>
+					<div><h2>Content Section #1</h2></div>
+					<div><h2>Content Section #2</h2></div>
+					<div><h2>Content Section #3</h2></div>
+					<div><h2>Content Section #4</h2></div>
 				</li>
 				<li class="pane-2">
-					<div></div>
+					<div><h2>Content Section #1</h2></div>
+					<div><h2>Content Section #2</h2></div>
+					<div><h2>Content Section #3</h2></div>
 				</li>
 				<li class="pane-3">
-					<div></div>
+					<div><h2>Content Section #1</h2></div>
 				</li>
 				<li class="pane-4">
-					<div></div>
+					<div><h2>Content Section #1</h2></div>
 				</li>
 			</ul>
 		</div>
 		<script type="text/javascript">
-			$('.hammerousel').hammerousel();
+			$hammerousel = $('.hammerousel').hammerousel();
+
+			$hammerousel.hammerousel('on', 'div:eq(1)', function() {
+				console.log('PEEKABO! This widget is awesome =)');
+			}, 0);
+
+			$hammerousel.on('hammerousel::beforeShowPane', function (event, type) {
+				console.log('beforeShowPane');
+			});
+
+			$hammerousel.on('hammerousel::afterShowPane', function (event, type) {
+				console.log('afterShowPane');
+			})
 		</script>
 	</body>
 </html>

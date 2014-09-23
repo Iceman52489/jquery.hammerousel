@@ -35,7 +35,7 @@
 				options = self.options,
 				data = self.data = {
 					hammer: {},
-					triggers: [],
+					triggers: {},
 					x: options.horizontal,
 					y: options.vertical
 				};
@@ -44,7 +44,6 @@
 				var $li = $(this),
 					html = $li.html();
 				$li.html('<div class="hammerousel-pane">' + html + '</div>');
-				data.triggers.push({});
 			});
 
 			if($.type(data.x.threshold) == 'string')
@@ -123,10 +122,9 @@
 				element = $(self.element),
 				data = self.data,
 				offset = 0,
-				type = (paneIndex > 0) ? 'next' : 'prev',
-				isSwitch = (data.active != paneIndex);
+				type = (paneIndex > 0) ? 'next' : 'prev';
 
-			if(isSwitch) {
+			if(data.active != paneIndex) {
 				element.triggerHandler('hammerousel::beforeShowPane', type);
 			}
 
@@ -139,7 +137,7 @@
 
 			self._setContainerX(event, offset, animate);
 
-			if(isSwitch) {
+			if(data.active != paneIndex) {
 				element.triggerHandler('hammerousel::afterShowPane', type);
 			}
 		},
@@ -281,8 +279,8 @@
 			var self = this,
 				element = $(self.element),
 				data = self.data,
-				carousel = element.find('.hammerousel-pane:eq(' + data.active + ')'),
-				pane = carousel.parent(),
+				carousel = element.find('> ul'),
+				pane = carousel.find('li:last'),
 				y = 0;
 
 			if(carousel.length) {
@@ -302,7 +300,9 @@
 					}
 				} else {
 					// Without panel locking set
-//					carousel = element.children().find('> li:eq(' + data.active + ') ul');
+					carousel = element.children().find('> li:eq(' + data.active + ') ul');
+
+
 
 					var direction = event.gesture.direction,
 						scrollDirection = (direction == 'down') ? 'up' : 'down',
@@ -331,8 +331,6 @@
 					carousel.css('top', newOffset);
 				}
 			}
-
-			self._handleTriggers();
 		},
 
 		_setOption: function(key, value) {
@@ -343,19 +341,18 @@
 		_createTrigger: function(selector, callback, distance) {
 			var self = this,
 				carousel = $(self.element),
-				panes = carousel.find('.hammerousel-pane'),
+				panes = carousel.find('> li'),
 				data = self.data,
 				options = {
 					selector: selector || null,
 					callback: callback || null,
 					distance: distance || 0,
-					index: []
+					index: panes.index(selector)
 				},
 
-				intIndex = 0,
-				intPane = 0,
 				isError = false;
-
+console.log(panes);
+console.log(options);
 			// Error Exceptions
 			if( !(options.selector && (typeof options.selector == 'string')) ) {
 				isError = true;
@@ -378,57 +375,14 @@
 
 			options.handle = 'hammerousel::' + options.selector;
 
-			panes.each(function(intPane, pane) {
-				if( $(pane).find(selector).length ) {
-					options.index.push(intPane);
-				}
-			});
-
 			// Store event trigger information into Hammerousel data storage
-			for(intIndex = 0; intIndex < options.index.length; intIndex++) {
-				intPane = options.index[intIndex];
-
-				data.triggers[intPane][options.handle] = {
-					handle: options.handle,
-					selector: options.selector,
-					distance: options.distance,
-					trigger: options.callback
-				};
-			}
+			data.triggers[options.handle] = {
+				handle: options.handle,
+				distance: options.distance,
+				trigger: options.callback
+			};
 
 			return options.handle;
-		},
-
-		_handleTriggers: function() {
-			var self = this,
-				element = $(self.element),
-				data = self.data,
-				pane = element.find('.hammerousel-pane:eq(' + data.active + ')'),
-				triggers = data.triggers[data.active];
-
-			for(handle in triggers) {
-				var trigger = triggers[handle],
-					paneElement = pane.find(trigger.selector),
-					scrollMin = 0,
-					scrollMax = pane.parent().height() + trigger.distance,
-					scrollOffset = paneElement.offset().top;
-
-				if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
-					var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
-					// Trigger the callback if element is scrolled into view
-					if(paneElement.hasClass('hammerousel-not-visible') || isInit) {
-						element.triggerHandler(handle);
-					}
-
-					paneElement
-						.removeClass('hammerousel-not-visible')
-						.addClass('hammerousel-is-visible');
-				} else {
-					paneElement
-						.removeClass('hammerousel-is-visible')
-						.addClass('hammerousel-not-visible');
-				}
-			}
 		},
 
 		/*----------------------*/
@@ -441,7 +395,7 @@
 				handle = self._createTrigger(selector, callback, distance),
 				eventTrigger = data.triggers[handle];
 
-			element.on(handle, callback);
+			element.on(handle, eventTrigger.trigger);
 
 			return handle;
 		},
@@ -453,7 +407,7 @@
 				handle = self._createTrigger(selector, callback, distance),
 				eventTrigger = data.triggers[handle];
 
-			element.one(handle, callback);
+			element.one(handle, eventTrigger.trigger);
 
 			return handle;
 		},
