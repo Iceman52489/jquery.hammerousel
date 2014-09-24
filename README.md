@@ -73,7 +73,9 @@ Example:
 Bind a live event to Hammerousel using a custom event parameter
 #####Parameters
 **selector**: `string`
+
 **callback**: `function`
+
 **distance**: `number`
 
 **Returns:** Event Name
@@ -82,7 +84,9 @@ Bind a live event to Hammerousel using a custom event parameter
 Bind an event that will only trigger once per element per event type
 #####Parameters
 **selector**: `string`
+
 **callback**: `function`
+
 **distance**: `number`
 
 **Returns:** Event Name

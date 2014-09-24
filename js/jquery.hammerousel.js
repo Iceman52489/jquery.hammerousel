@@ -209,9 +209,9 @@
 						data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
 
 						// Animation timing on :first and :last panes
-					if((data.active == 0 && event.gesture.direction == 'up') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'down')) {
-						data.offsets.drag *= .4;
-					}
+						if((data.active == 0 && event.gesture.direction == 'up') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'down')) {
+							data.offsets.drag *= .4;
+						}
 
 						self._setContainerY(data.offsets.drag + data.offsets.pane);
 					} else {
@@ -286,7 +286,7 @@
 				pane = carousel.parent(),
 				y = 0;
 
-			if(carousel.length) {
+			if(carousel.length && carousel.width() > pane.height()) {
 				if(data.y.threshold) {
 					// With panel locking set
 					animate ?
