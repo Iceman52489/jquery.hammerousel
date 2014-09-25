@@ -63,10 +63,13 @@ body,
 }
 
 .hammerousel > ul > li .hammerousel-pane > div {
-	border: 1px solid #FFFFFF;
 	position: relative;
 	width: 100%;
 	min-height: 1100px;
+}
+
+.hammerousel > ul li .hammerousel-pane > div.pane-demo {
+	border: 1px solid #FFFFFF;
 }
 
 .hammerousel > ul > li .hammerousel-pane > div > h2 {
