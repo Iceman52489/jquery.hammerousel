@@ -51,7 +51,7 @@ body,
 }
 
 .hammerousel > ul > li .hammerousel-pane {
-	position: absolute;
+	position: relative;
 	display: block;
 	min-height: 100%;
 	width: 100%;

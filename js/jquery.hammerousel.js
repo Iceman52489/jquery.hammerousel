@@ -77,10 +77,48 @@
 				pane: $(window).width(),
 				carousel: element.width() * panes.length
 			};
-
+//alert(self._getScrollWidth());
 			// Set pane and carousel dimensions
 			panes.width(data.widths.pane);
 			carousel.width(data.widths.carousel);
+		},
+
+		_getScrollWidth: function() {
+			var body = $('body'),
+				outerWrapper = $('<div></div>)'),
+				innerWrapper = $('<p></p>)'),
+
+				outerWidth,
+				innerWidth;
+
+			innerWrapper.css({
+				width: 200,
+				height: 200
+			});
+
+			outerWrapper.css({
+				position: "absolute",
+				overflow: "hidden",
+				visibility: "hidden",
+				top: 0,
+				left: 0,
+				width: 200,
+				height: 150
+			});
+
+			outerWrapper.append(
+				innerWrapper
+			).appendTo('body');
+//alert(outerWrapper.width() + ' ' + outerWrapper.outerWidth() + ' ' + outerWrapper.innerWidth());
+			innerWrapper.css('overflow', 'scroll');
+
+			outerWidth = outerWrapper.width();
+			innerWidth = innerWrapper.width();
+//alert(outerWrapper.width())
+//alert(outerWrapper.width() + ' ' + outerWrapper.outerWidth() + ' ' + outerWrapper.innerWidth());
+			outerWrapper.remove();
+
+			return (outerWidth - innerWidth);
 		},
 
 		_bindHammer: function() {
@@ -191,16 +229,16 @@
 
 					break;
 				case 'swipeleft':
+					event.gesture.preventDefault();
 					self.next();
 					event.gesture.stopDetect();
-
 					break;
 				case 'swiperight':
+					event.gesture.preventDefault();
 					self.prev();
 					event.gesture.stopDetect();
 
 					break;
-
 				// Vertical Events
 				case 'dragup':
 				case 'dragdown':
@@ -215,21 +253,14 @@
 
 						self._setContainerY(data.offsets.drag + data.offsets.pane);
 					} else {
-						data.offsets.drag = event.gesture.deltaX;
+						data.offsets.drag = event.gesture.deltaY;
 						self._setContainerY(event, data.offsets.drag);
 					}
 				case 'swipeup':
-//					self.next();
-//					event.gesture.stopDetect();
-
-					break;
 				case 'swipedown':
-//					self.prev();
-//					event.gesture.stopDetect();
-
 					break;
 				// Default Events
-				case 'dragstart':
+/*				case 'dragstart':
 					carousel = isHorizontal ? element.find('> ul') : element.children().find('.hammerousel-pane:eq(' + data.active + ') ul');
 
 					if(isHorizontal) {
@@ -239,6 +270,9 @@
 					}
 
 					break;
+*/				case 'dragstart':
+					data.y.transform.y = carousel.find('li:eq(' + data.active + ')').scrollTop();
+					console.log(data.y.transform.y);
 				case 'release':
 					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
 
@@ -303,33 +337,31 @@
 					}
 				} else {
 					// Without panel locking set
-//					carousel = element.children().find('> li:eq(' + data.active + ') ul');
-
 					var direction = event.gesture.direction,
 						scrollDirection = (direction == 'down') ? 'up' : 'down',
-						dragOffset = (scrollDirection == 'down') ? -event.gesture.distance : event.gesture.distance,
-						newOffset = data.y.transform.initial + dragOffset,
+						dragOffset = (scrollDirection == 'down') ? event.gesture.deltaY : event.gesture.deltaY,
+						newOffset = -data.y.transform.y + dragOffset,
 						minThreshold = 0,
 						maxThreshold = carousel.height() - pane.height();
 
 					switch(scrollDirection) {
 						case 'up':
 							if(-newOffset <= 0) {
-								carousel.css('top', minThreshold);
+								newOffset = minThreshold;
 								return;
 							}
 
 							break;
 						case 'down':
 							if(-newOffset >= maxThreshold) {
-								carousel.css('top', -maxThreshold);
+								newOffset = maxThreshold;
 								return;
 							}
 
 							break;
 					}
 
-					carousel.css('top', newOffset);
+					carousel.parent().scrollTop(-newOffset);
 				}
 			}
 
@@ -412,7 +444,7 @@
 					paneElement = pane.find(trigger.selector),
 					scrollMin = 0,
 					scrollMax = pane.parent().height() + trigger.distance,
-					scrollOffset = paneElement.offset().top;
+					scrollOffset = pane.parent().scrollTop();
 
 				if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
 					var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
