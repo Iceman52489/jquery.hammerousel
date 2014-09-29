@@ -2,11 +2,12 @@
 	~ jQuery.hammerousel ~
 		Vertical/Horizontal touch-enabled carousel
 	-----------------------------------------------
-	Author:     Kevin Chiu (Mocha Development)
-	Version:    1.1 (September 23, 2014)
+	Author: 	Kevin Chiu (Mocha Development)
+	Version: 	1.2 (September 29, 2014)
+				1.1 (September 23, 2014)
 				1.0 (September 19, 2014)
 
-	Options:    $().hammerousel({
+	Options: 	$().hammerousel({
 					
 				})
 *************************************************************/
@@ -173,10 +174,6 @@
 				type = (paneIndex > 0) ? 'next' : 'prev',
 				isSwitch = (data.active != paneIndex);
 
-			if(isSwitch) {
-				element.triggerHandler( 'hammerousel::beforeShowPane', [type, (type == 'prev') ? paneIndex - 1 : paneIndex + 1] );
-			}
-
 			// Pane Bounds
 			paneIndex = Math.max( 0, Math.min(paneIndex, data.intPanes - 1) );
 
@@ -184,10 +181,14 @@
 			data.active = paneIndex;
 			offset = -((100 / data.intPanes) * data.active);
 
+			if(isSwitch) {
+				element.triggerHandler( 'hammerousel::beforeShowPane', [type, data.active] );
+			}
+
 			self._setContainerX(event, offset, animate);
 
 			if(isSwitch) {
-				element.triggerHandler('hammerousel::afterShowPane', [type, (type == 'prev') ? paneIndex - 1 : paneIndex + 1] );
+				element.triggerHandler('hammerousel::afterShowPane', [type, data.active] );
 			}
 		},
 
@@ -400,7 +401,6 @@
 			// Store event trigger information into Hammerousel data storage
 			for(intIndex = 0; intIndex < options.index.length; intIndex++) {
 				intPane = options.index[intIndex];
-				console.log(intPane);
 
 				data.triggers[intPane][options.handle] = {
 					handle: options.handle,
