@@ -281,7 +281,7 @@
 							self.showPane(event, data.active, true);
 						}
 					} else {
-
+						self.showPane(event, data.active, true);
 					}
 
 					break;
