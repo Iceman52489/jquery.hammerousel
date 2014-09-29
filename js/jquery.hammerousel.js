@@ -174,7 +174,7 @@
 				isSwitch = (data.active != paneIndex);
 
 			if(isSwitch) {
-				element.triggerHandler('hammerousel::beforeShowPane', type);
+				element.triggerHandler( 'hammerousel::beforeShowPane', [type, (type == 'prev') ? paneIndex - 1 : paneIndex + 1] );
 			}
 
 			// Pane Bounds
@@ -187,7 +187,7 @@
 			self._setContainerX(event, offset, animate);
 
 			if(isSwitch) {
-				element.triggerHandler('hammerousel::afterShowPane', type);
+				element.triggerHandler('hammerousel::afterShowPane', [type, (type == 'prev') ? paneIndex - 1 : paneIndex + 1] );
 			}
 		},
 
@@ -400,6 +400,7 @@
 			// Store event trigger information into Hammerousel data storage
 			for(intIndex = 0; intIndex < options.index.length; intIndex++) {
 				intPane = options.index[intIndex];
+				console.log(intPane);
 
 				data.triggers[intPane][options.handle] = {
 					handle: options.handle,
@@ -422,8 +423,8 @@
 			for(handle in triggers) {
 				var trigger = triggers[handle],
 					paneElement = pane.find(trigger.selector),
-					scrollMin = 0,
-					scrollMax = pane.height() + trigger.distance,
+					scrollMin = paneElement.offset().top - trigger.distance,
+					scrollMax = scrollMin + paneElement.height() + trigger.distance,
 					scrollOffset = pane.scrollTop();
 
 				if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {

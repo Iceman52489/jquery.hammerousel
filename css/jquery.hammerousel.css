@@ -46,8 +46,6 @@ body,
 	display: block;
 	float: left;
 	overflow: hidden;
-	-webkit-transform-style: preserve-3d;
-	-webkit-transform: translate3d(0,0,0);
 }
 
 .hammerousel > ul > li .hammerousel-pane {
@@ -69,12 +67,6 @@ body,
 
 .hammerousel > ul > li .hammerousel-pane li {
 	float: none;
-}
-
-.hammerousel > ul > li .hammerousel-pane .hammerousel-pane-inner div {
-	position: relative;
-	width: 100%;
-	min-height: 1100px;
 }
 
 .hammerousel li > ul {
