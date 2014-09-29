@@ -44,7 +44,13 @@
 			element.find('ul > li').each(function() {
 				var $li = $(this),
 					html = $li.html();
-				$li.html('<div class="hammerousel-pane">' + html + '</div>');
+
+				$li.html(
+					'<div class="hammerousel-pane">' +
+						'<div class="hammerousel-pane-inner">' + html + '</div>' +
+					'</div>'
+				);
+
 				data.triggers.push({});
 			});
 
@@ -66,6 +72,7 @@
 				element = $(self.element),
 				carousel = element.find('> ul'),
 				panes = carousel.find('> li'),
+				paneWrappers = carousel.find('.hammerousel-pane'),
 				options = self.options,
 				data = self.data;
 
@@ -77,10 +84,12 @@
 				pane: $(window).width(),
 				carousel: element.width() * panes.length
 			};
-//alert(self._getScrollWidth());
+
 			// Set pane and carousel dimensions
 			panes.width(data.widths.pane);
 			carousel.width(data.widths.carousel);
+
+			paneWrappers.height($(window).height());
 		},
 
 		_getScrollWidth: function() {
@@ -109,13 +118,12 @@
 			outerWrapper.append(
 				innerWrapper
 			).appendTo('body');
-//alert(outerWrapper.width() + ' ' + outerWrapper.outerWidth() + ' ' + outerWrapper.innerWidth());
+
 			innerWrapper.css('overflow', 'scroll');
 
 			outerWidth = outerWrapper.width();
 			innerWidth = innerWrapper.width();
-//alert(outerWrapper.width())
-//alert(outerWrapper.width() + ' ' + outerWrapper.outerWidth() + ' ' + outerWrapper.innerWidth());
+
 			outerWrapper.remove();
 
 			return (outerWidth - innerWidth);
@@ -260,19 +268,8 @@
 				case 'swipedown':
 					break;
 				// Default Events
-/*				case 'dragstart':
-					carousel = isHorizontal ? element.find('> ul') : element.children().find('.hammerousel-pane:eq(' + data.active + ') ul');
-
-					if(isHorizontal) {
-
-					} else {
-						data.y.transform.initial = panes.offset().top;
-					}
-
-					break;
-*/				case 'dragstart':
-					data.y.transform.y = carousel.find('li:eq(' + data.active + ')').scrollTop();
-					console.log(data.y.transform.y);
+				case 'dragstart':
+					data.y.transform.y = carousel.find('.hammerousel-pane:eq(' + data.active + ')').scrollTop();
 				case 'release':
 					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
 
@@ -317,10 +314,10 @@
 				element = $(self.element),
 				data = self.data,
 				carousel = element.find('.hammerousel-pane:eq(' + data.active + ')'),
-				pane = carousel.parent(),
+				wrapper = carousel.find('.hammerousel-pane-inner'),
 				y = 0;
 
-			if(carousel.length && carousel.width() > pane.height()) {
+			if(wrapper.length && carousel.height() < wrapper.height()) {
 				if(data.y.threshold) {
 					// With panel locking set
 					animate ?
@@ -339,29 +336,12 @@
 					// Without panel locking set
 					var direction = event.gesture.direction,
 						scrollDirection = (direction == 'down') ? 'up' : 'down',
-						dragOffset = (scrollDirection == 'down') ? event.gesture.deltaY : event.gesture.deltaY,
-						newOffset = -data.y.transform.y + dragOffset,
+						dragOffset = -event.gesture.deltaY,
+						newOffset = (data.y.transform.y + dragOffset),
 						minThreshold = 0,
-						maxThreshold = carousel.height() - pane.height();
+						maxThreshold = wrapper.height() - carousel.height();
 
-					switch(scrollDirection) {
-						case 'up':
-							if(-newOffset <= 0) {
-								newOffset = minThreshold;
-								return;
-							}
-
-							break;
-						case 'down':
-							if(-newOffset >= maxThreshold) {
-								newOffset = maxThreshold;
-								return;
-							}
-
-							break;
-					}
-
-					carousel.parent().scrollTop(-newOffset);
+					carousel.scrollTop(newOffset);
 				}
 			}
 
@@ -443,8 +423,8 @@
 				var trigger = triggers[handle],
 					paneElement = pane.find(trigger.selector),
 					scrollMin = 0,
-					scrollMax = pane.parent().height() + trigger.distance,
-					scrollOffset = pane.parent().scrollTop();
+					scrollMax = pane.height() + trigger.distance,
+					scrollOffset = pane.scrollTop();
 
 				if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
 					var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );

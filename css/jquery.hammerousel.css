@@ -53,6 +53,14 @@ body,
 .hammerousel > ul > li .hammerousel-pane {
 	position: relative;
 	display: block;
+	overflow: scroll;
+	min-height: 100%;
+	width: 100%;
+}
+
+.hammerousel > ul > li .hammerousel-pane .hammerousel-pane-inner {
+	position: relative;
+	display: block;
 	min-height: 100%;
 	width: 100%;
 	height: auto;
@@ -62,13 +70,13 @@ body,
 	float: none;
 }
 
-.hammerousel > ul > li .hammerousel-pane > div {
+.hammerousel > ul > li .hammerousel-pane .hammerousel-pane-inner div {
 	position: relative;
 	width: 100%;
 	min-height: 1100px;
 }
 
-.hammerousel > ul li .hammerousel-pane > div.pane-demo {
+.hammerousel > ul li .hammerousel-pane .hammerousel-pane-inner div.pane-demo {
 	border: 1px solid #FFFFFF;
 }
 
