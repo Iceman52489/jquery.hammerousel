@@ -25,7 +25,9 @@
 			vertical: {
 				enabled: true,
 				threshold: 0
-			}
+			},
+
+			subRoot: '.hammerousel-pane-inner'
 		},
 		/*---------------------*/
 		/*--- Initial Setup ---*/
@@ -79,19 +81,28 @@
 
 			// Set instance variables
 			data.active = 0;
+			data.subActive = [];
 			data.intPanes = panes.length;
+			data.intSubPanes = [];
 			data.offsets = {};
 			data.widths = {
 				pane: $(window).width(),
 				carousel: element.width() * panes.length
 			};
 
+			data.heights = {
+				pane: $(window).height()
+			};
+
 			// Set pane and carousel dimensions
 			carousel.width(data.widths.carousel);
 
-			panes.each(function() {
+			panes.each(function(i) {
 				var pane = $(this),
 					deltaWidth;
+
+				data.intSubPanes[i] = pane.find(options.subpaneRoot + ' > ul > li').length;
+				data.subActive[i] = 0;
 
 				pane.width(data.widths.pane);
 
@@ -180,11 +191,12 @@
 		/*-----------------------*/
 		/*--- Private Methods ---*/
 		/*-----------------------*/
-		showPane: function(event, paneIndex, animate) {
+		showPane: function(event, paneIndex, animate) {console.log(event);
 			var self = this,
 				element = $(self.element),
 				data = self.data,
 				offset = 0,
+				direction = (event.gesture.direction.search(/up|down/) > -1) ? 'vertical' : 'horizontal',
 				type = (paneIndex > 0) ? 'next' : 'prev',
 				isSwitch = (data.active != paneIndex);
 
@@ -196,28 +208,62 @@
 			offset = -((100 / data.intPanes) * data.active);
 
 			if(isSwitch) {
-				element.triggerHandler( 'hammerousel::beforeShowPane', [type, data.active] );
+				element.triggerHandler( 'hammerousel::' + direction + '::beforeShowPane', [type, data.active] );
 			}
 
-			self._setContainerX(event, offset, animate);
+			if(direction == 'horizontal') {
+				self._setContainerX(event, offset, animate);
+			} else {
+//				self._setContainerX(event, offset, animate);
+			}
 
 			if(isSwitch) {
-				element.triggerHandler('hammerousel::afterShowPane', [type, data.active] );
+				element.triggerHandler('hammerousel::' + direction + '::afterShowPane', [type, data.active] );
+			}
+		},
+
+		prev: function(event) {
+			var self = this,
+				data = self.data,
+				isVertical = event.gesture.direction.search(/up|down/) > -1;
+
+			if(isVertical) {
+				$('.hammerousel-pane:eq(' + data.active + ')').animate({ scrollTop: 0 }, 800);
+			} else {
+				return self.showPane(event, data.active - 1, true);
 			}
 		},
 
 		next: function(event) {
 			var self = this,
-				data = self.data;
+				data = self.data,
+				isVertical = event.gesture.direction.search(/up|down/) > -1;
 
-			return self.showPane(event, data.active + 1, true);
+			if(isVertical) {
+				$('.hammerousel-pane:eq(' + data.active + ')').animate({ scrollTop: 0 }, 800);
+			} else {
+				return self.showPane(event, data.active + 1, true);
+			}
 		},
 
-		prev: function(event) {
+		showSubPane: function(subpaneIndex) {console.log(subpaneIndex);
 			var self = this,
-				data = self.data;
+				options = self.options,
+				data = self.data,
+				element = (self.element),
+				pane = element.find('.hammerousel-pane:eq(' + data.active + ')'),
+				paneWrapper = pane.find(options.subRoot),
+				subpaneIndex = (data.subActive[data.active] + subpaneIndex),
+				subpane,
+				offsetY;
 
-			return self.showPane(event, data.active - 1, true);
+			if(subpaneIndex > 0 && subpaneIndex < data.intSubPanes[data.active]);
+
+			data.subActive[data.active] = subpaneIndex = Math.min(Math.max(0, subpaneIndex), data.intSubPanes[data.active]);
+			subpane = paneWrapper.find('> ul > li:eq(' + subpaneIndex + ')'),
+			offsetY = subpane.position().top;
+
+			pane.animate({ scrollTop: offsetY }, 300);
 		},
 
 		/*-----------------------*/
@@ -229,9 +275,11 @@
 
 			var self = $(this).data('B3T4Hammerousel'),
 				element = $(self.element),
+				options = self.options,
 				carousel = element.find('> ul'),
 				panes = carousel.find('.hammerousel-pane'),
 				data = self.data,
+				pane = carousel.find('.hammerousel-pane:eq(' + data.active + ')'),
 				isHorizontal = (event.gesture.direction.search(/left|right/) > -1),
 				threshold;
 
@@ -253,38 +301,29 @@
 					break;
 				case 'swipeleft':
 					event.gesture.preventDefault();
-					self.next();
+					self.next(event);
 					event.gesture.stopDetect();
 					break;
 				case 'swiperight':
 					event.gesture.preventDefault();
-					self.prev();
+					self.prev(event);
 					event.gesture.stopDetect();
 
 					break;
 				// Vertical Events
 				case 'dragup':
 				case 'dragdown':
-					if(data.y.threshold) {
-						data.offsets.pane = -(100 / data.intPanes) * data.active;
-						data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
+					data.intSubPanes[data.active] = pane.find(options.subRoot + ' > ul > li').length;
 
-						// Animation timing on :first and :last panes
-						if((data.active == 0 && event.gesture.direction == 'up') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'down')) {
-							data.offsets.drag *= .4;
-						}
-
-						self._setContainerY(data.offsets.drag + data.offsets.pane);
-					} else {
-						data.offsets.drag = event.gesture.deltaY;
-						self._setContainerY(event, data.offsets.drag);
-					}
+					data.offsets.drag = event.gesture.deltaY;
+					self._setContainerY(event, data.offsets.drag);
 				case 'swipeup':
 				case 'swipedown':
 					break;
 				// Default Events
 				case 'dragstart':
-					data.y.transform.y = carousel.find('.hammerousel-pane:eq(' + data.active + ')').scrollTop();
+					data.y.transform.y = pane.scrollTop();
+					break;
 				case 'release':
 					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
 
@@ -296,7 +335,13 @@
 							self.showPane(event, data.active, true);
 						}
 					} else {
-						self.showPane(event, data.active, true);
+						if(event.gesture.direction == 'up' && Math.abs(event.gesture.deltaY) > (data.heights.pane * threshold) ) {
+							self.showSubPane(1);
+						} else if(event.gesture.direction == 'down' && Math.abs(event.gesture.deltaY) > (data.heights.pane * threshold) ) {
+							self.showSubPane(-1);
+						} else {
+							self.showSubPane(0);
+						}
 					}
 
 					break;
@@ -308,7 +353,7 @@
 				element = $(self.element),
 				carousel = element.find('> ul'),
 				data = self.data,
-				x = 0;
+				x = 0;data.subActive
 
 			animate ?
 				carousel.addClass('animate') :
@@ -333,31 +378,15 @@
 				y = 0;
 
 			if(wrapper.length && carousel.height() < wrapper.height()) {
-				if(data.y.threshold) {
-					// With panel locking set
-					animate ?
-						carousel.addClass('animate') :
-						carousel.removeClass('animate');
+				// Without panel locking set
+				var direction = event.gesture.direction,
+					scrollDirection = (direction == 'down') ? 'up' : 'down',
+					dragOffset = -event.gesture.deltaY,
+					newOffset = (data.y.transform.y + dragOffset),
+					minThreshold = 0,
+					maxThreshold = wrapper.height() - carousel.height();
 
-					if(Modernizr.csstransforms3d) {
-						carousel.css('transform', 'translate3d(0,' + percent + '%,0) scale3d(1,1,1)');
-					} else if(Modernizr.csstransforms) {
-						carousel.css('transform', 'translate(0,' + percent + '%)');
-					} else {
-						y = ( (data.widths.pane * data.intPanes) / 100 ) * percent;
-						carousel.css('top', y);
-					}
-				} else {
-					// Without panel locking set
-					var direction = event.gesture.direction,
-						scrollDirection = (direction == 'down') ? 'up' : 'down',
-						dragOffset = -event.gesture.deltaY,
-						newOffset = (data.y.transform.y + dragOffset),
-						minThreshold = 0,
-						maxThreshold = wrapper.height() - carousel.height();
-
-					carousel.scrollTop(newOffset);
-				}
+				carousel.scrollTop(newOffset);
 			}
 
 			self._handleTriggers();
