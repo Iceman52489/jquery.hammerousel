@@ -87,8 +87,22 @@
 			};
 
 			// Set pane and carousel dimensions
-			panes.width(data.widths.pane);
 			carousel.width(data.widths.carousel);
+
+			panes.each(function() {
+				var pane = $(this),
+					deltaWidth;
+
+				pane.width(data.widths.pane);
+
+				// Re-adjust width because other browsers treat width without margin/padding/bordering (Firefox treats it as one)
+				deltaWidth = pane.outerWidth(true) - data.widths.pane;
+
+				if(deltaWidth > 0) {
+					data.widths.pane -= deltaWidth;
+					pane.width(data.widths.pane);
+				}
+			});
 
 			paneWrappers.height($(window).height());
 		},
