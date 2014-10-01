@@ -51,9 +51,11 @@ body,
 .hammerousel > ul > li .hammerousel-pane {
 	position: relative;
 	display: block;
-	overflow: hidden;
+	overflow: scroll;
 	min-height: 100%;
 	width: 100%;
+	-webkit-overflow-scrolling: touch;
+	overflow-scrolling: touch;
 }
 
 .hammerousel > ul > li .hammerousel-pane .hammerousel-pane-inner {
