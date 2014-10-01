@@ -273,7 +273,18 @@
 					data.y.transform.y = carousel.find('.hammerousel-pane:eq(' + data.active + ')').scrollTop();
 					break;
 				case 'panend':
-					self.showPane(event, data.active, true);
+					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
+
+					if(isHorizontal) {
+						if( Math.abs(event.gesture.deltaX) > (data.widths.pane * threshold) ) {
+							(event.gesture.direction == Hammer.DIRECTION_RIGHT) ?  self.prev(event) : self.next(event);
+						} else {
+							self.showPane(event, data.active, true);
+						}
+					} else {
+						self.showPane(event, data.active, true);
+					}
+
 					break;
 			}
 		},
