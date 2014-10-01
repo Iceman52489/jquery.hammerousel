@@ -1,8 +1,33 @@
-/*! jQuery plugin for Hammer.JS - v1.1.3 - 2014-05-20
- * http://eightmedia.github.com/hammer.js
- *
- * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
- * Licensed under the MIT license */
+(function(factory) {
+	if (typeof define === 'function' && define.amd) {
+		define(['jquery', 'hammerjs'], factory);
+	} else if (typeof exports === 'object') {
+		factory(require('jquery'), require('hammerjs'));
+	} else {
+		factory(jQuery, Hammer);
+	}
+}(function($, Hammer) {
+	function hammerify(el, options) {
+		var $el = $(el);
+		if(!$el.data("hammer")) {
+			$el.data("hammer", new Hammer($el[0], options));
+		}
+	}
 
-!function(a,b){"use strict";function c(a,c){Date.now||(Date.now=function(){return(new Date).getTime()}),a.utils.each(["on","off"],function(d){a.utils[d]=function(a,e,f){c(a)[d](e,function(a){var d=c.extend({},a.originalEvent,a);d.button===b&&(d.button=a.which-1),f.call(this,d)})}}),a.Instance.prototype.trigger=function(a,b){var d=c(this.element);return d.has(b.target).length&&(d=c(b.target)),d.trigger({type:a,gesture:b})},c.fn.hammer=function(b){return this.each(function(){var d=c(this),e=d.data("hammer");e?e&&b&&a.utils.extend(e.options,b):d.data("hammer",new a(this,b||{}))})}}"function"==typeof define&&define.amd?define(["hammerjs","jquery"],c):c(a.Hammer,a.jQuery||a.Zepto)}(window);
-//# sourceMappingURL=jquery.hammer.min.map
+	$.fn.hammer = function(options) {
+		return this.each(function() {
+			hammerify(this, options);
+		});
+	};
+
+	// extend the emit method to also trigger jQuery events
+	Hammer.Manager.prototype.emit = (function(originalEmit) {
+		return function(type, data) {
+			originalEmit.call(this, type, data);
+			$(this.element).trigger({
+				type: type,
+				gesture: data
+			});
+		};
+	})(Hammer.Manager.prototype.emit);
+}));

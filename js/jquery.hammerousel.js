@@ -3,7 +3,8 @@
 		Vertical/Horizontal touch-enabled carousel
 	-----------------------------------------------
 	Author: 	Kevin Chiu (Mocha Development)
-	Version: 	1.2 (September 29, 2014)
+	Version: 	2.0 (October 1, 2014)
+				1.2 (September 29, 2014)
 				1.1 (September 23, 2014)
 				1.0 (September 19, 2014)
 
@@ -86,21 +87,36 @@
 				carousel: element.width() * panes.length
 			};
 
+			data.heights = {
+				pane: $(window).height()
+			};
+
 			// Set pane and carousel dimensions
 			carousel.width(data.widths.carousel);
 
+			data.widths.pane += self._getScrollWidth();
+			data.heights.pane += self._getScrollWidth();
+
 			panes.each(function() {
 				var pane = $(this),
-					deltaWidth;
+					deltaWidth,
+					deltaHeight;
 
 				pane.width(data.widths.pane);
+				pane.height(data.heights.pane);
 
 				// Re-adjust width because other browsers treat width without margin/padding/bordering (Firefox treats it as one)
 				deltaWidth = pane.outerWidth(true) - data.widths.pane;
+				deltaHeight = pane.outerHeight(true) - data.heights.pane;
 
 				if(deltaWidth > 0) {
 					data.widths.pane -= deltaWidth;
 					pane.width(data.widths.pane);
+				}
+
+				if(deltaHeight > 0) {
+					data.heights.pane -= deltaHeight;
+					pane.height(data.heights.pane);
 				}
 			});
 
@@ -108,38 +124,24 @@
 		},
 
 		_getScrollWidth: function() {
-			var body = $('body'),
-				outerWrapper = $('<div></div>)'),
-				innerWrapper = $('<p></p>)'),
+			var wrapper = $(
+					'<div style="width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;">' +
+						'<div style="height:100px;"></div>' +
+					'</div>'
+				),
 
 				outerWidth,
 				innerWidth;
 
-			innerWrapper.css({
-				width: 200,
-				height: 200
-			});
+			wrapper.appendTo('body');
+			
+			outerWidth = $('div', wrapper).innerWidth();
 
-			outerWrapper.css({
-				position: "absolute",
-				overflow: "hidden",
-				visibility: "hidden",
-				top: 0,
-				left: 0,
-				width: 200,
-				height: 150
-			});
+			wrapper.css('overflow-y', 'scroll');
 
-			outerWrapper.append(
-				innerWrapper
-			).appendTo('body');
+			innerWidth = $('div', wrapper).innerWidth();
 
-			innerWrapper.css('overflow', 'scroll');
-
-			outerWidth = outerWrapper.width();
-			innerWidth = innerWrapper.width();
-
-			outerWrapper.remove();
+			wrapper.remove();
 
 			return (outerWidth - innerWidth);
 		},
@@ -150,7 +152,7 @@
 				options = self.options,
 				data = self.data;
 
-			data.hammer.events = ['release', 'dragstart'];
+			data.hammer.events = ['panend', 'panstart'];
 			data.hammer.options = {
 				dragLockToAxis: true,
 				dragBlockVertical: true,
@@ -162,12 +164,12 @@
 
 			// Set options for horizontal features
 			if(data.x.enabled) {
-				data.hammer.events.push('dragleft','dragright','swipeleft','swiperight');
+				data.hammer.events.push('panleft','panright'/*,'swipeleft','swiperight'*/);
 			}
 
 			// Set options for vertical features
 			if(data.y.enabled) {
-				data.hammer.events.push('dragup','dragdown','swipeup','swipedown');
+//				data.hammer.events.push('panup','pandown','swipeup','swipedown');
 			}
 
 			data.hammer.instance = element.hammer(data.hammer.options);
@@ -225,26 +227,26 @@
 		/*-----------------------*/
 		_handleHammerousel: function(event) {
 			// disable browser scrolling
-			event.gesture.preventDefault();
+			event.preventDefault;
 
 			var self = $(this).data('B3T4Hammerousel'),
 				element = $(self.element),
 				carousel = element.find('> ul'),
 				panes = carousel.find('.hammerousel-pane'),
 				data = self.data,
-				isHorizontal = (event.gesture.direction.search(/left|right/) > -1),
+				isHorizontal = (event.gesture.direction == Hammer.DIRECTION_LEFT || event.gesture.direction == Hammer.DIRECTION_RIGHT),
 				threshold;
 
 			switch (event.type) {
 				// Horizontal Events
-				case 'dragright':
-				case 'dragleft':
+				case 'panright':
+				case 'panleft':
 					// Bind to finger
 					data.offsets.pane = -(100 / data.intPanes) * data.active;
 					data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
 
 					// Animation timing on :first and :last panes
-					if((data.active == 0 && event.gesture.direction == 'right') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'left')) {
+					if((data.active == 0 && event.gesture.direction == Hammer.DIRECTION_RIGHT) || (data.active == (data.intPanes - 1) && event.gesture.direction == Hammer.DIRECTION_LEFT)) {
 						data.offsets.drag *= .4;
 					}
 
@@ -252,53 +254,26 @@
 
 					break;
 				case 'swipeleft':
-					event.gesture.preventDefault();
 					self.next();
 					event.gesture.stopDetect();
 					break;
 				case 'swiperight':
-					event.gesture.preventDefault();
 					self.prev();
 					event.gesture.stopDetect();
-
 					break;
 				// Vertical Events
-				case 'dragup':
-				case 'dragdown':
-					if(data.y.threshold) {
-						data.offsets.pane = -(100 / data.intPanes) * data.active;
-						data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
-
-						// Animation timing on :first and :last panes
-						if((data.active == 0 && event.gesture.direction == 'up') || (data.active == (data.intPanes - 1) && event.gesture.direction == 'down')) {
-							data.offsets.drag *= .4;
-						}
-
-						self._setContainerY(data.offsets.drag + data.offsets.pane);
-					} else {
-						data.offsets.drag = event.gesture.deltaY;
-						self._setContainerY(event, data.offsets.drag);
-					}
+				case 'panup':
+				case 'pandown':
+					break;
 				case 'swipeup':
 				case 'swipedown':
 					break;
 				// Default Events
-				case 'dragstart':
+				case 'panstart':
 					data.y.transform.y = carousel.find('.hammerousel-pane:eq(' + data.active + ')').scrollTop();
-				case 'release':
-					threshold = isHorizontal ? data.x.threshold : data.y.threshold;
-
-					// If drag distance is more than drag distance, then move to the next pane
-					if(isHorizontal) {
-						if( Math.abs(event.gesture.deltaX) > (data.widths.pane * threshold) ) {
-							(event.gesture.direction == 'right') ?  self.prev(event) : self.next(event);
-						} else {
-							self.showPane(event, data.active, true);
-						}
-					} else {
-						self.showPane(event, data.active, true);
-					}
-
+					break;
+				case 'panend':
+					self.showPane(event, data.active, true);
 					break;
 			}
 		},
@@ -350,7 +325,7 @@
 				} else {
 					// Without panel locking set
 					var direction = event.gesture.direction,
-						scrollDirection = (direction == 'down') ? 'up' : 'down',
+						scrollDirection = (direction == Hammer.DIRECTION_DOWN) ? 'up' : 'down',
 						dragOffset = -event.gesture.deltaY,
 						newOffset = (data.y.transform.y + dragOffset),
 						minThreshold = 0,
@@ -360,7 +335,7 @@
 				}
 			}
 
-			self._handleTriggers();
+//			self._handleTriggers();
 		},
 
 		_setOption: function(key, value) {
@@ -424,9 +399,9 @@
 				};
 			}
 
-			return options.handle;
+			return options;
 		},
-
+/*
 		_handleTriggers: function() {
 			var self = this,
 				element = $(self.element),
@@ -458,7 +433,7 @@
 				}
 			}
 		},
-
+*/
 		/*----------------------*/
 		/*--- Public Methods ---*/
 		/*----------------------*/
@@ -466,24 +441,82 @@
 			var self = this,
 				element = $(self.element),
 				data = self.data,
-				handle = self._createTrigger(selector, callback, distance),
-				eventTrigger = data.triggers[handle];
+				eventData = self._createTrigger(selector, callback, distance),
+				intIndex;
 
-			element.on(handle, callback);
+			element.on(eventData.handle, eventData.callback);
 
-			return handle;
+			for(intIndex = 0; intIndex < eventData.index.length; intIndex++) {
+				$('.hammerousel-pane:eq(' + eventData.index[intIndex] + ')').on('scroll', function() {
+					var pane = $(this),
+						intPane = $('.hammerousel-pane').index(pane),
+						trigger = data.triggers[intPane][eventData.handle],
+						
+						paneElement = pane.find(trigger.selector),
+						scrollMin = paneElement.offset().top - trigger.distance,
+						scrollMax = scrollMin + paneElement.height() + trigger.distance,
+						scrollOffset = pane.scrollTop();
+
+					if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
+						var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
+						// Trigger the callback if element is scrolled into view
+						if(paneElement.hasClass('hammerousel-not-visible') || isInit) {
+							element.triggerHandler(eventData.handle);
+						}
+
+						paneElement
+							.removeClass('hammerousel-not-visible')
+							.addClass('hammerousel-is-visible');
+					} else {
+						paneElement
+							.removeClass('hammerousel-is-visible')
+							.addClass('hammerousel-not-visible');
+					}
+				});
+			}
+
+			return eventData.handle;
 		},
 
 		one: function(selector, callback, distance) {
 			var self = this,
 				element = $(self.element),
 				data = self.data,
-				handle = self._createTrigger(selector, callback, distance),
-				eventTrigger = data.triggers[handle];
+				eventData = self._createTrigger(selector, callback, distance),
+				intIndex;
 
-			element.one(handle, callback);
+			element.on(eventData.handle, eventData.callback);
 
-			return handle;
+			for(intIndex = 0; intIndex < eventData.index.length; intIndex++) {
+				$('.hammerousel-pane:eq(' + eventData.index[intIndex] + ')').one('scroll', function() {
+					var pane = $(this),
+						intPane = $('.hammerousel-pane').index(pane),
+						trigger = data.triggers[intPane][eventData.handle],
+						
+						paneElement = pane.find(trigger.selector),
+						scrollMin = paneElement.offset().top - trigger.distance,
+						scrollMax = scrollMin + paneElement.height() + trigger.distance,
+						scrollOffset = pane.scrollTop();
+
+					if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
+						var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
+						// Trigger the callback if element is scrolled into view
+						if(paneElement.hasClass('hammerousel-not-visible') || isInit) {
+							element.triggerHandler(eventData.handle);
+						}
+
+						paneElement
+							.removeClass('hammerousel-not-visible')
+							.addClass('hammerousel-is-visible');
+					} else {
+						paneElement
+							.removeClass('hammerousel-is-visible')
+							.addClass('hammerousel-not-visible');
+					}
+				});
+			}
+
+			return eventData.handle;
 		},
 
 		destroy: function() {
