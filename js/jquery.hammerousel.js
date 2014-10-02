@@ -403,50 +403,13 @@
 
 			return options;
 		},
-/*
-		_handleTriggers: function() {
+
+		_handleTriggers: function(eventData) {
 			var self = this,
 				element = $(self.element),
 				data = self.data,
 				pane = element.find('.hammerousel-pane:eq(' + data.active + ')'),
 				triggers = data.triggers[data.active];
-
-			for(handle in triggers) {
-				var trigger = triggers[handle],
-					paneElement = pane.find(trigger.selector),
-					scrollMin = paneElement.offset().top - trigger.distance,
-					scrollMax = scrollMin + paneElement.height() + trigger.distance,
-					scrollOffset = pane.scrollTop();
-
-				if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
-					var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
-					// Trigger the callback if element is scrolled into view
-					if(paneElement.hasClass('hammerousel-not-visible') || isInit) {
-						element.triggerHandler(handle);
-					}
-
-					paneElement
-						.removeClass('hammerousel-not-visible')
-						.addClass('hammerousel-is-visible');
-				} else {
-					paneElement
-						.removeClass('hammerousel-is-visible')
-						.addClass('hammerousel-not-visible');
-				}
-			}
-		},
-*/
-		/*----------------------*/
-		/*--- Public Methods ---*/
-		/*----------------------*/
-		on: function(selector, callback, distance) {
-			var self = this,
-				element = $(self.element),
-				data = self.data,
-				eventData = self._createTrigger(selector, callback, distance),
-				intIndex;
-
-			element.on(eventData.handle, eventData.callback);
 
 			for(intIndex = 0; intIndex < eventData.index.length; intIndex++) {
 				$('.hammerousel-pane:eq(' + eventData.index[intIndex] + ')').on('scroll', function() {
@@ -476,6 +439,22 @@
 					}
 				});
 			}
+		},
+
+		/*----------------------*/
+		/*--- Public Methods ---*/
+		/*----------------------*/
+		on: function(selector, callback, distance) {
+			var self = this,
+				element = $(self.element),
+				data = self.data,
+				eventData = self._createTrigger(selector, callback, distance),
+				intIndex;
+
+			// Use jQuery's one for event delegation
+			element.on(eventData.handle, eventData.callback);
+			// Create a new scroll event for triggering the new 'on' event
+			self._handleTriggers(eventData);
 
 			return eventData.handle;
 		},
@@ -487,36 +466,10 @@
 				eventData = self._createTrigger(selector, callback, distance),
 				intIndex;
 
-			element.on(eventData.handle, eventData.callback);
-
-			for(intIndex = 0; intIndex < eventData.index.length; intIndex++) {
-				$('.hammerousel-pane:eq(' + eventData.index[intIndex] + ')').on('scroll', function() {
-					var pane = $(this),
-						intPane = $('.hammerousel-pane').index(pane),
-						trigger = data.triggers[intPane][eventData.handle],
-						
-						paneElement = pane.find(trigger.selector),
-						scrollMin = paneElement.offset().top - trigger.distance,
-						scrollMax = scrollMin + paneElement.height() + trigger.distance,
-						scrollOffset = pane.scrollTop();
-
-					if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
-						var isInit = ( !paneElement.hasClass('hammerousel-is-visible') && !paneElement.hasClass('hammerousel-not-visible') );
-						// Trigger the callback if element is scrolled into view
-						if(paneElement.hasClass('hammerousel-not-visible') || isInit) {
-							element.triggerHandler(eventData.handle);
-						}
-
-						paneElement
-							.removeClass('hammerousel-not-visible')
-							.addClass('hammerousel-is-visible');
-					} else {
-						paneElement
-							.removeClass('hammerousel-is-visible')
-							.addClass('hammerousel-not-visible');
-					}
-				});
-			}
+			// Use jQuery's one for event delegation
+			element.one(eventData.handle, eventData.callback);
+			// Create a new scroll event for triggering the new 'on' event
+			self._handleTriggers(eventData);
 
 			return eventData.handle;
 		},
