@@ -76,7 +76,8 @@
 				panes = carousel.find('> li'),
 				paneWrappers = carousel.find('.hammerousel-pane'),
 				options = self.options,
-				data = self.data;
+				data = self.data,
+				scrollWidth = self._getScrollWidth();
 
 			// Set instance variables
 			data.active = 0;
@@ -94,56 +95,44 @@
 			// Set pane and carousel dimensions
 			carousel.width(data.widths.carousel);
 
-			data.widths.pane += self._getScrollWidth();
-			data.heights.pane += self._getScrollWidth();
-
 			panes.each(function() {
 				var pane = $(this),
 					deltaWidth,
 					deltaHeight;
 
-				pane.width(data.widths.pane);
-				pane.height(data.heights.pane);
+				pane.css({
+					width: data.widths.pane,
+					height: data.heights.pane
+				});
 
-				// Re-adjust width because other browsers treat width without margin/padding/bordering (Firefox treats it as one)
-				deltaWidth = pane.outerWidth(true) - data.widths.pane;
-				deltaHeight = pane.outerHeight(true) - data.heights.pane;
+				pane.find('.hammerousel-pane').css({
+					width: (data.widths.pane + scrollWidth),
+					height: (data.heights.pane + scrollWidth)
+				});
 
-				if(deltaWidth > 0) {
-					data.widths.pane -= deltaWidth;
-					pane.width(data.widths.pane);
-				}
-
-				if(deltaHeight > 0) {
-					data.heights.pane -= deltaHeight;
-					pane.height(data.heights.pane);
-				}
+				pane.outerWidth(data.widths.pane)
+				pane.outerHeight(data.heights.pane);
 			});
-
-			paneWrappers.height($(window).height());
 		},
 
 		_getScrollWidth: function() {
-			var wrapper = $(
-					'<div style="width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;">' +
-						'<div style="height:100px;"></div>' +
+			var outerWrapper = $(
+					'<div style="width:50px;height:50px;overflow:auto">' +
+						'<div><div/>' +
 					'</div>'
 				),
 
-				outerWidth,
-				innerWidth;
+				innerWrapper,
+				width;
 
-			wrapper.appendTo('body');
-			
-			outerWidth = $('div', wrapper).innerWidth();
+			outerWrapper.appendTo('body');
+			innerWrapper = outerWrapper.children();
 
-			wrapper.css('overflow-y', 'scroll');
+			width = innerWrapper.innerWidth()- innerWrapper.height(99).innerWidth();
 
-			innerWidth = $('div', wrapper).innerWidth();
+			outerWrapper.remove();
 
-			wrapper.remove();
-
-			return (outerWidth - innerWidth);
+			return width;
 		},
 
 		_bindHammer: function() {
