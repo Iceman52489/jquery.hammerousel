@@ -224,23 +224,29 @@
 				panes = carousel.find('.hammerousel-pane'),
 				data = self.data,
 				isHorizontal = (event.gesture.direction == Hammer.DIRECTION_LEFT || event.gesture.direction == Hammer.DIRECTION_RIGHT),
+				lockToYAxis = Math.abs(event.gesture.deltaX) > Math.abs(event.gesture.deltaY),
+				lockToXAxis = Math.abs(event.gesture.deltaY) < Math.abs(event.gesture.deltaX),
 				threshold;
 
+			// Prevent wrapper propagation
 			if(!$(event.target).hasClass('hammerousel-pane')) {
+				// Attempt to lock directional touch gesture
 				switch (event.type) {
 					// Horizontal Events
 					case 'panright':
 					case 'panleft':
-						// Bind to finger
-						data.offsets.pane = -(100 / data.intPanes) * data.active;
-						data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
+						if(isHorizontal && lockToYAxis) {
+							// Bind to finger
+							data.offsets.pane = -(100 / data.intPanes) * data.active;
+							data.offsets.drag = ((100 / data.widths.pane) * event.gesture.deltaX) / data.intPanes;
 
-						// Animation timing on :first and :last panes
-						if((data.active == 0 && event.gesture.direction == Hammer.DIRECTION_RIGHT) || (data.active == (data.intPanes - 1) && event.gesture.direction == Hammer.DIRECTION_LEFT)) {
-							data.offsets.drag *= .4;
+							// Animation timing on :first and :last panes
+							if((data.active == 0 && event.gesture.direction == Hammer.DIRECTION_RIGHT) || (data.active == (data.intPanes - 1) && event.gesture.direction == Hammer.DIRECTION_LEFT)) {
+								data.offsets.drag *= .4;
+							}
+
+							self._setContainerX(event, data.offsets.drag + data.offsets.pane);
 						}
-
-						self._setContainerX(event, data.offsets.drag + data.offsets.pane);
 
 						break;
 					case 'swipeleft':
@@ -336,8 +342,6 @@
 					carousel.scrollTop(newOffset);
 				}
 			}
-
-//			self._handleTriggers();
 		},
 
 		_setOption: function(key, value) {
