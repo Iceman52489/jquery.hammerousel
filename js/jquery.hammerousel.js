@@ -422,8 +422,8 @@
 						trigger = data.triggers[intPane][eventData.handle],
 						
 						paneElement = pane.find(trigger.selector),
-						scrollMin = paneElement.offset().top - trigger.distance,
-						scrollMax = scrollMin + paneElement.height() + trigger.distance,
+						scrollMin = parseInt(paneElement.offset().top - trigger.distance),
+						scrollMax = parseInt(scrollMin + paneElement.height() + trigger.distance),
 						scrollOffset = pane.scrollTop();
 
 					if(scrollMin <= scrollOffset && scrollOffset <= scrollMax) {
